@@ -6,8 +6,12 @@
     <string name="app_id">562539180438611</string>
 
     <!-- URL RESOURCES -->
-    <string name="domain">http://localhost:8888/</string>
     <string name="servlet_create_user">createuser</string>
+   	<string name="servlet_get_circles">getcircles</string>
+
 
     <string name="app_secret">2de4bebce24c38d34bf838a407ee2022</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="title_activity_circles">Circles</string>
+
 </resources>

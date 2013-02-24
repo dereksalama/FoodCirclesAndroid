@@ -1,4 +1,4 @@
-package com.foodcircles.android;
+package com.foodcircles.android.util;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

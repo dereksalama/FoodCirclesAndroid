@@ -1,4 +1,4 @@
-package com.foodcircles.android;
+package com.foodcircles.android.activity;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,11 +24,16 @@ import com.facebook.Response;
 import com.facebook.Session;
 import com.facebook.SessionState;
 import com.facebook.model.GraphUser;
+import com.foodcircles.android.R;
+import com.foodcircles.android.dao.FacebookInfo;
+import com.foodcircles.android.util.HttpUtil;
+import com.foodcircles.android.util.TokenUtil;
 
 public class LoginActivity extends Activity {
 
-	GraphUser mUser;
 	ProgressBar mProgressBar;
+	String userID;
+	FacebookInfo mInfo;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -36,33 +41,43 @@ public class LoginActivity extends Activity {
 		setContentView(R.layout.activity_login);
 
 		mProgressBar = (ProgressBar) findViewById(R.id.progressBar1);
+		mProgressBar.setVisibility(View.INVISIBLE);
 		Button login = (Button) findViewById(R.id.login_button);
-		login.setOnClickListener(new OnClickListener() {
+		mInfo = FacebookInfo.get(this);
+		userID = mInfo.getID();
+		//TODO: update if different?
+		if (userID == null) {
+			login.setOnClickListener(new OnClickListener() {
 
-			@Override
-			public void onClick(View v) {
-				mProgressBar.setActivated(true);
-				Session.openActiveSession(LoginActivity.this, true, new Session.StatusCallback() {
+				@Override
+				public void onClick(View v) {
+					mProgressBar.setActivated(true);
+					mProgressBar.setVisibility(View.VISIBLE);
+					Session.openActiveSession(LoginActivity.this, true, new Session.StatusCallback() {
 
-					@Override
-					public void call(Session session, SessionState state, Exception exception) {
-						if (session.isOpened()) {
-							Request.executeMeRequestAsync(session, new Request.GraphUserCallback() {
+						@Override
+						public void call(Session session, SessionState state, Exception exception) {
+							if (session.isOpened()) {
+								mInfo.setToken(TokenUtil.hash(session.getAccessToken()));
+								Request.executeMeRequestAsync(session, new Request.GraphUserCallback() {
 
-								@Override
-								public void onCompleted(GraphUser user, Response response) {
-									if (user != null) {
-										Log.i("LoginActivity", "User: " + user.getName() + " logged in to facebook");
-										mUser = user;
-										new AsyncLogin().execute(null, null, null);
+									@Override
+									public void onCompleted(GraphUser user, Response response) {
+										if (user != null) {
+											Log.i("LoginActivity", "User: " + user.getName() + " logged in to facebook");
+											mInfo.setID(user.getId());
+											new AsyncLogin().execute(user);
+										}
 									}
-								}
-							});
+								});
+							}
 						}
-					}
-				});
-			}
-		});
+					});
+				}
+			});
+		} else {
+			openCircles();
+		}
 	}
 
 	@Override
@@ -76,18 +91,22 @@ public class LoginActivity extends Activity {
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 	  super.onActivityResult(requestCode, resultCode, data);
 	  //TODO: cache that token!
-	  //TODO: create FC user!
 	  Session.getActiveSession().onActivityResult(this, requestCode, resultCode, data);
 	}
 
-	private class AsyncLogin extends AsyncTask<Void,Void,Boolean> {
+	private void openCircles() {
+		Intent i = new Intent(this, CirclesActivity.class);
+		startActivity(i);
+	}
+
+	private class AsyncLogin extends AsyncTask<GraphUser,Void,Boolean> {
 
 		@Override
-		protected Boolean doInBackground(Void... params) {
+		protected Boolean doInBackground(GraphUser... user) {
 			List<BasicNameValuePair> parameters = new ArrayList<BasicNameValuePair>();
-			parameters.add(new BasicNameValuePair("user_id", mUser.getId()));
-			parameters.add(new BasicNameValuePair("name", mUser.getName()));
-			parameters.add(new BasicNameValuePair("token", TokenUtil.hash(Session.getActiveSession().getAccessToken())));
+			parameters.add(new BasicNameValuePair("user_id", user[0].getId()));
+			parameters.add(new BasicNameValuePair("name", user[0].getName()));
+			parameters.add(new BasicNameValuePair("token", TokenUtil.hash(mInfo.getToken())));
 
 			String servlet = LoginActivity.this.getString(R.string.servlet_create_user);
 			try {
@@ -106,6 +125,7 @@ public class LoginActivity extends Activity {
 		protected void onPostExecute(Boolean result) {
 			if (result) {
 				Log.d("LoginActivity", "FC login success");
+				openCircles();
 			} else {
 				Toast.makeText(LoginActivity.this, "Login Failed", Toast.LENGTH_LONG).show();
 			}
