@@ -29,21 +29,15 @@ public class CirclesActivity extends ListActivity {
 
 	ProgressBar mProgressBar;
 	List<Circle> mCircles;
-	FacebookInfo mInfo;
+	FacebookInfo mFacebookInfo;
 	ArrayAdapter<Circle> mAdapter;
-	String mID;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_circles);
-		String mID = FacebookInfo.get(this).getID();
-		mInfo = FacebookInfo.get(this);
-		mID = mInfo.getID();
+		mFacebookInfo = FacebookInfo.get(this);
 		mProgressBar = (ProgressBar) findViewById(R.id.circles_loading);
-		if (mID == null) {
-			throw new IllegalStateException("No user logged in");
-		}
 		mAdapter = new ArrayAdapter<Circle>(this, android.R.layout.simple_list_item_1);
 		setListAdapter(mAdapter);
 	}
@@ -74,10 +68,13 @@ public class CirclesActivity extends ListActivity {
 		protected List<Circle> doInBackground(Void... params) {
 			String servlet = CirclesActivity.this.getString(R.string.servlet_get_circles);
 			List<BasicNameValuePair> parameters = new ArrayList<BasicNameValuePair>();
-			parameters.add(new BasicNameValuePair("user_id", mID));
-			parameters.add(new BasicNameValuePair("token", mInfo.getToken()));
+			parameters.add(new BasicNameValuePair("user_id", mFacebookInfo.getID()));
+			parameters.add(new BasicNameValuePair("token", mFacebookInfo.getToken()));
 			try {
 				String jString = HttpUtil.postForJson(servlet, parameters);
+				if (jString.length() <= 0) {
+					return null;
+				}
 				Gson gson = new Gson();
 				JsonParser jParser = new JsonParser();
 				JsonArray jArray = jParser.parse(jString).getAsJsonArray();

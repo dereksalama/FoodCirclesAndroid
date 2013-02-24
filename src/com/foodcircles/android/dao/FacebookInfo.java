@@ -13,6 +13,8 @@ public class FacebookInfo {
 
 	private static String USER_ID = "user_id";
 
+	private static String USER_NAME = "user_name";
+
 	private static String TOKEN = "token";
 
 
@@ -21,6 +23,14 @@ public class FacebookInfo {
 			instance = new FacebookInfo(c.getApplicationContext());
 		}
 		return instance;
+	}
+
+	public void setName(String name) {
+		set(USER_NAME, name);
+	}
+
+	public String getName() {
+		return mPrefs.getString(USER_NAME, null);
 	}
 
 	public void setID(String id) {

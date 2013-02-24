@@ -16,14 +16,11 @@ import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.facebook.Request;
-import com.facebook.Response;
-import com.facebook.Session;
-import com.facebook.SessionState;
-import com.facebook.model.GraphUser;
 import com.foodcircles.android.R;
 import com.foodcircles.android.dao.FacebookInfo;
 import com.foodcircles.android.util.HttpUtil;
@@ -31,53 +28,57 @@ import com.foodcircles.android.util.TokenUtil;
 
 public class LoginActivity extends Activity {
 
-	ProgressBar mProgressBar;
-	String userID;
-	FacebookInfo mInfo;
+	EditText mPassField;
+	FacebookInfo mFacebookInfo;
+	TextView mWelcomeText;
+	TextView mMessageText;
+	Button mLogin;
+	ProgressBar mProgress;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_login);
+		boolean newAccount = getIntent().getBooleanExtra("new", true);
 
-		mProgressBar = (ProgressBar) findViewById(R.id.progressBar1);
-		mProgressBar.setVisibility(View.INVISIBLE);
-		Button login = (Button) findViewById(R.id.login_button);
-		mInfo = FacebookInfo.get(this);
-		userID = mInfo.getID();
-		//TODO: update if different?
-		if (userID == null) {
-			login.setOnClickListener(new OnClickListener() {
+		mProgress = (ProgressBar) findViewById(R.id.login_loading);
+		mProgress.setVisibility(View.GONE);
 
-				@Override
-				public void onClick(View v) {
-					mProgressBar.setActivated(true);
-					mProgressBar.setVisibility(View.VISIBLE);
-					Session.openActiveSession(LoginActivity.this, true, new Session.StatusCallback() {
+		mFacebookInfo = FacebookInfo.get(this);
+		String name = mFacebookInfo.getName();
+		mWelcomeText = (TextView) findViewById(R.id.name);
+		mWelcomeText.setText("Hello, " + name);
+		mMessageText = (TextView) findViewById(R.id.login_message);
 
-						@Override
-						public void call(Session session, SessionState state, Exception exception) {
-							if (session.isOpened()) {
-								mInfo.setToken(TokenUtil.hash(session.getAccessToken()));
-								Request.executeMeRequestAsync(session, new Request.GraphUserCallback() {
 
-									@Override
-									public void onCompleted(GraphUser user, Response response) {
-										if (user != null) {
-											Log.i("LoginActivity", "User: " + user.getName() + " logged in to facebook");
-											mInfo.setID(user.getId());
-											new AsyncLogin().execute(user);
-										}
-									}
-								});
-							}
-						}
-					});
-				}
-			});
+		if (newAccount) {
+			mMessageText.setText("Create a FC account:");
 		} else {
-			openCircles();
+			mMessageText.setText("Login:");
 		}
+
+		mPassField = (EditText) findViewById(R.id.password);
+
+		mLogin = (Button) findViewById(R.id.login_button);
+
+		mLogin.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				String pass = mPassField.getText().toString();
+				String token = TokenUtil.hash(pass);
+				mFacebookInfo.setToken(token);
+				mProgress.setVisibility(View.VISIBLE);
+				new AsyncLogin().execute(null, null, null);
+			}
+		});
+
+
+	}
+
+	private void openCircles() {
+		Intent i = new Intent(this, CirclesActivity.class);
+		startActivity(i);
 	}
 
 	@Override
@@ -86,27 +87,14 @@ public class LoginActivity extends Activity {
 		getMenuInflater().inflate(R.menu.activity_login, menu);
 		return true;
 	}
-
-	@Override
-	public void onActivityResult(int requestCode, int resultCode, Intent data) {
-	  super.onActivityResult(requestCode, resultCode, data);
-	  //TODO: cache that token!
-	  Session.getActiveSession().onActivityResult(this, requestCode, resultCode, data);
-	}
-
-	private void openCircles() {
-		Intent i = new Intent(this, CirclesActivity.class);
-		startActivity(i);
-	}
-
-	private class AsyncLogin extends AsyncTask<GraphUser,Void,Boolean> {
+	private class AsyncLogin extends AsyncTask<Void,Void,Boolean> {
 
 		@Override
-		protected Boolean doInBackground(GraphUser... user) {
+		protected Boolean doInBackground(Void... user) {
 			List<BasicNameValuePair> parameters = new ArrayList<BasicNameValuePair>();
-			parameters.add(new BasicNameValuePair("user_id", user[0].getId()));
-			parameters.add(new BasicNameValuePair("name", user[0].getName()));
-			parameters.add(new BasicNameValuePair("token", TokenUtil.hash(mInfo.getToken())));
+			parameters.add(new BasicNameValuePair("user_id", mFacebookInfo.getID()));
+			parameters.add(new BasicNameValuePair("name", mFacebookInfo.getName()));
+			parameters.add(new BasicNameValuePair("token", mFacebookInfo.getToken()));
 
 			String servlet = LoginActivity.this.getString(R.string.servlet_create_user);
 			try {
