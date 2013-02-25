@@ -9,13 +9,8 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.NavUtils;
 import android.support.v4.view.ViewPager;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.foodcircles.android.R;
 
@@ -37,10 +32,14 @@ public class CircleDetail extends FragmentActivity implements
 	 */
 	ViewPager mViewPager;
 
+	Long mCircleId;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_circle_detail);
+
+		mCircleId = getIntent().getLongExtra("circle_id", 0);
 
 		// Set up the action bar.
 		final ActionBar actionBar = getActionBar();
@@ -128,66 +127,48 @@ public class CircleDetail extends FragmentActivity implements
 	 */
 	public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
+		private Fragment mMembersFragment;
+		private Fragment mChatFragment;
+
 		public SectionsPagerAdapter(FragmentManager fm) {
 			super(fm);
+
+			mMembersFragment = new CircleMembersFragment();
+			Bundle args = new Bundle();
+			args.putLong("circle_id", mCircleId);
+			mMembersFragment.setArguments(args);
+
+			mChatFragment = new CircleChatFragment();
+			mChatFragment.setArguments(args);
+
 		}
 
 		@Override
 		public Fragment getItem(int position) {
-			// getItem is called to instantiate the fragment for the given page.
-			// Return a DummySectionFragment (defined as a static inner class
-			// below) with the page number as its lone argument.
-			Fragment fragment = new DummySectionFragment();
-			Bundle args = new Bundle();
-			args.putInt(DummySectionFragment.ARG_SECTION_NUMBER, position + 1);
-			fragment.setArguments(args);
-			return fragment;
+			switch (position) {
+			case 0:
+				return mMembersFragment;
+			case 1:
+				return mChatFragment;
+			default:
+				throw new IllegalStateException("no fragment");
+			}
 		}
 
 		@Override
 		public int getCount() {
-			// Show 3 total pages.
-			return 3;
+			return 2;
 		}
 
 		@Override
 		public CharSequence getPageTitle(int position) {
 			switch (position) {
 			case 0:
-				return getString(R.string.title_section1).toUpperCase();
+				return getString(R.string.title_circle_members).toUpperCase();
 			case 1:
-				return getString(R.string.title_section2).toUpperCase();
-			case 2:
-				return getString(R.string.title_section3).toUpperCase();
+				return getString(R.string.title_circle_messages).toUpperCase();
 			}
 			return null;
-		}
-	}
-
-	/**
-	 * A dummy fragment representing a section of the app, but that simply
-	 * displays dummy text.
-	 */
-	public static class DummySectionFragment extends Fragment {
-		/**
-		 * The fragment argument representing the section number for this
-		 * fragment.
-		 */
-		public static final String ARG_SECTION_NUMBER = "section_number";
-
-		public DummySectionFragment() {
-		}
-
-		@Override
-		public View onCreateView(LayoutInflater inflater, ViewGroup container,
-				Bundle savedInstanceState) {
-			// Create a new TextView and set its text to the fragment's section
-			// number argument value.
-			TextView textView = new TextView(getActivity());
-			textView.setGravity(Gravity.CENTER);
-			textView.setText(Integer.toString(getArguments().getInt(
-					ARG_SECTION_NUMBER)));
-			return textView;
 		}
 	}
 

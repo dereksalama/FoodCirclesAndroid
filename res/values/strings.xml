@@ -8,13 +8,20 @@
     <!-- URL RESOURCES -->
     <string name="servlet_create_user">createuser</string>
     <string name="servlet_get_circles">getcircles</string>
+    <string name="servlet_get_circle_members">getcirclemembers</string>
+    <string name="servlet_get_circle_chat">getchat</string>
+    <string name="servlet_send_circle_message">sendmessage</string>
+
+
+
     <string name="app_secret">2de4bebce24c38d34bf838a407ee2022</string>
     <string name="hello_world">Hello world!</string>
     <string name="title_activity_circles">Circles</string>
     <string name="title_activity_login">LoginActivity</string>
-    <string name="title_section3">Section 3</string>
-    <string name="title_section2">Section 2</string>
-    <string name="title_section1">Section 1</string>
+
+    <!-- Circle detail & fragments -->
     <string name="title_activity_circle_detail">CircleDetail</string>
+    <string name="title_circle_members">Friends</string>
+    <string name="title_circle_messages">Chat</string>
 
 </resources>

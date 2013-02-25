@@ -8,11 +8,13 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.message.BasicNameValuePair;
 
 import android.app.ListActivity;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -40,6 +42,15 @@ public class CirclesActivity extends ListActivity {
 		mProgressBar = (ProgressBar) findViewById(R.id.circles_loading);
 		mAdapter = new ArrayAdapter<Circle>(this, android.R.layout.simple_list_item_1);
 		setListAdapter(mAdapter);
+	}
+
+	@Override
+	protected void onListItemClick(ListView l, View v, int position, long id) {
+		Circle c = mAdapter.getItem(position);
+		Intent i = new Intent(this, CircleDetail.class);
+		i.putExtra("circle_id", c.id);
+
+		startActivity(i);
 	}
 
 	@Override
@@ -102,6 +113,7 @@ public class CirclesActivity extends ListActivity {
 				Toast.makeText(CirclesActivity.this, "Error fetching circles", Toast.LENGTH_SHORT).show();
 			} else {
 				mCircles = result;
+				mAdapter.clear();
 				mAdapter.addAll(mCircles);
 			}
 			mProgressBar.setVisibility(View.GONE);

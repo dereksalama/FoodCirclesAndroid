@@ -30,7 +30,7 @@ public class HttpUtil {
 
 		HttpResponse response = post(servlet, params);
 
-		if (response.getStatusLine().getStatusCode() == HttpStatus.SC_ACCEPTED) {
+		if (response.getStatusLine().getStatusCode() == HttpStatus.SC_ACCEPTED || response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 			HttpEntity result = response.getEntity();
 			return EntityUtils.toString(result);
 		} else {
