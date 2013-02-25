@@ -33,6 +33,12 @@ public class CircleMembersFragment extends ListFragment {
 	ProgressBar mProgressBar;
 
 	Long mCircleId;
+
+	public void refresh() {
+		mProgressBar.setVisibility(View.VISIBLE);
+		new AsyncCircleMembers().execute(null, null, null);
+	}
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -97,6 +103,9 @@ public class CircleMembersFragment extends ListFragment {
 				mAdapter.clear();
 				mAdapter.addAll(result.getUsers());
 				mCircle = result;
+			}
+			if (mProgressBar != null) {
+				mProgressBar.setVisibility(View.GONE);
 			}
 
 		}

@@ -1,6 +1,17 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <item
+        android:id="@+id/menu_new_circle"
+        android:showAsAction="ifRoom"
+        android:icon="@drawable/ic_menu_btn_add"
+        android:title="New Circle" />
+
+    <item
+        android:id="@+id/menu_view_invites"
+        android:showAsAction="ifRoom"
+        android:title="View Invites"
+        android:icon="@drawable/ic_menu_notifications" />
+    <item
         android:id="@+id/menu_settings"
         android:orderInCategory="100"
         android:showAsAction="never"

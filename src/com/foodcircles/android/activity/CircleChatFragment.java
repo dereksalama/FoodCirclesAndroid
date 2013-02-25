@@ -70,13 +70,13 @@ public class CircleChatFragment extends ListFragment {
 			}
 		});
 		mTextField = (EditText) v.findViewById(R.id.edit_text_send_message);
+		setListAdapter(mAdapter);
 		if (mMessages != null) {
 			mAdapter.addAll(mMessages);
 			mProgressBar.setVisibility(View.GONE);
 		} else {
 			new AsyncCircleChat().execute(null, null, null);
 		}
-		setListAdapter(mAdapter);
 
 		return v;
 	}
@@ -121,7 +121,9 @@ public class CircleChatFragment extends ListFragment {
 				mAdapter.addAll(result);
 				mMessages = result;
 			}
-			mProgressBar.setVisibility(View.GONE);
+			if (mProgressBar != null) {
+				mProgressBar.setVisibility(View.GONE);
+			}
 		}
 	}
 

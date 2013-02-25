@@ -11,6 +11,7 @@
     <string name="servlet_get_circle_members">getcirclemembers</string>
     <string name="servlet_get_circle_chat">getchat</string>
     <string name="servlet_send_circle_message">sendmessage</string>
+   	<string name="servlet_get_invites">getinvites</string>
 
 
 
@@ -23,5 +24,8 @@
     <string name="title_activity_circle_detail">CircleDetail</string>
     <string name="title_circle_members">Friends</string>
     <string name="title_circle_messages">Chat</string>
+    <string name="error_dialog_title">Error</string>
+    <string name="error_dialog_button_text">OK</string>
+    <string name="title_activity_invites">InvitesActivity</string>
 
 </resources>

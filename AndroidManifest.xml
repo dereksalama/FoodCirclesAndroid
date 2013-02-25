@@ -49,6 +49,17 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.foodcircles.android.activity.CirclesActivity" />
         </activity>
+        <activity
+            android:name="com.foodcircles.android.activity.PickerActivity"
+            android:label="@string/app_name" />
+        <activity
+            android:name="com.foodcircles.android.activity.InvitesActivity"
+            android:label="@string/title_activity_invites"
+            android:parentActivityName="com.foodcircles.android.activity.CirclesActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.foodcircles.android.activity.CirclesActivity" />
+        </activity>
     </application>
 
 </manifest>

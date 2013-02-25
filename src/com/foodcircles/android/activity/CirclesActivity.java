@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -49,8 +50,23 @@ public class CirclesActivity extends ListActivity {
 		Circle c = mAdapter.getItem(position);
 		Intent i = new Intent(this, CircleDetail.class);
 		i.putExtra("circle_id", c.id);
+		i.putExtra("circle_name", c.name);
 
 		startActivity(i);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.menu_view_invites:
+			Intent i = new Intent(this, InvitesActivity.class);
+			startActivity(i);
+			return true;
+		case R.id.menu_new_circle:
+			//TODO:
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
 	}
 
 	@Override
@@ -60,6 +76,7 @@ public class CirclesActivity extends ListActivity {
 			mProgressBar.setVisibility(View.VISIBLE);
 			new AsyncCircles().execute(null, null, null);
 		} else {
+			mAdapter.clear();
 			mAdapter.addAll(mCircles);
 			mProgressBar.setVisibility(View.GONE);
 		}

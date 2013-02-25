@@ -1,7 +1,9 @@
 package com.foodcircles.android.activity;
 
 import android.app.ActionBar;
+import android.app.Activity;
 import android.app.FragmentTransaction;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -11,7 +13,9 @@ import android.support.v4.app.NavUtils;
 import android.support.v4.view.ViewPager;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
+import com.facebook.Session;
 import com.foodcircles.android.R;
 
 public class CircleDetail extends FragmentActivity implements
@@ -34,18 +38,31 @@ public class CircleDetail extends FragmentActivity implements
 
 	Long mCircleId;
 
+	private CircleMembersFragment mMembersFragment;
+	private CircleChatFragment mChatFragment;
+	private static final int REAUTH_ACTIVITY_CODE = 100;
+	private static final int PICK_FRIENDS = 1;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_circle_detail);
 
 		mCircleId = getIntent().getLongExtra("circle_id", 0);
+		mMembersFragment = new CircleMembersFragment();
+		Bundle args = new Bundle();
+		args.putLong("circle_id", mCircleId);
+		mMembersFragment.setArguments(args);
+
+		mChatFragment = new CircleChatFragment();
+		mChatFragment.setArguments(args);
+
 
 		// Set up the action bar.
 		final ActionBar actionBar = getActionBar();
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 		// Show the Up button in the action bar.
 		actionBar.setDisplayHomeAsUpEnabled(true);
+		actionBar.setTitle(getIntent().getStringExtra("circle_name"));
 
 		// Create the adapter that will return a fragment for each of the three
 		// primary sections of the app.
@@ -77,6 +94,11 @@ public class CircleDetail extends FragmentActivity implements
 					.setText(mSectionsPagerAdapter.getPageTitle(i))
 					.setTabListener(this));
 		}
+
+        if (Session.getActiveSession() == null ||
+                Session.getActiveSession().isClosed()) {
+            Session.openActiveSession(this, true, null);
+        }
 	}
 
 	@Override
@@ -99,6 +121,11 @@ public class CircleDetail extends FragmentActivity implements
 			//
 			NavUtils.navigateUpFromSameTask(this);
 			return true;
+		case R.id.menu_refresh:
+			mMembersFragment.refresh();
+			return true;
+		case R.id.menu_invite:
+			startPickerActivity();
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -126,21 +153,8 @@ public class CircleDetail extends FragmentActivity implements
 	 * one of the sections/tabs/pages.
 	 */
 	public class SectionsPagerAdapter extends FragmentPagerAdapter {
-
-		private Fragment mMembersFragment;
-		private Fragment mChatFragment;
-
 		public SectionsPagerAdapter(FragmentManager fm) {
 			super(fm);
-
-			mMembersFragment = new CircleMembersFragment();
-			Bundle args = new Bundle();
-			args.putLong("circle_id", mCircleId);
-			mMembersFragment.setArguments(args);
-
-			mChatFragment = new CircleChatFragment();
-			mChatFragment.setArguments(args);
-
 		}
 
 		@Override
@@ -170,6 +184,25 @@ public class CircleDetail extends FragmentActivity implements
 			}
 			return null;
 		}
+	}
+
+	private void startPickerActivity() {
+	     Intent intent = new Intent();
+	     intent.setData(PickerActivity.FRIEND_PICKER);
+	     intent.setClass(this, PickerActivity.class);
+	     startActivityForResult(intent, PICK_FRIENDS);
+	 }
+
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+	    super.onActivityResult(requestCode, resultCode, data);
+	    if (requestCode == REAUTH_ACTIVITY_CODE) {
+	    	Session.getActiveSession().onActivityResult(this, requestCode, resultCode, data);
+	    } else if (resultCode == Activity.RESULT_OK && requestCode == PICK_FRIENDS) {
+	    	Toast.makeText(this, "Invites sent!", Toast.LENGTH_SHORT).show();
+	    	//TODO: send invites
+	    }
+
 	}
 
 }

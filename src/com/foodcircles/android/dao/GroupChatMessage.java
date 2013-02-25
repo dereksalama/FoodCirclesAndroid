@@ -24,7 +24,7 @@ public class GroupChatMessage {
 
 	@Override
 	public String toString() {
-		return text;
+		return sender + ": " + text;
 	}
 
 }
