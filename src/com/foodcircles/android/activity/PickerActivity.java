@@ -1,7 +1,10 @@
 package com.foodcircles.android.activity;
 
+import java.util.ArrayList;
+
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -9,6 +12,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 
 import com.facebook.FacebookException;
+import com.facebook.model.GraphUser;
 import com.facebook.widget.FriendPickerFragment;
 import com.facebook.widget.PickerFragment;
 import com.foodcircles.android.R;
@@ -86,7 +90,17 @@ public class PickerActivity extends FragmentActivity {
 	}
 
 	private void finishActivity() {
-	    setResult(RESULT_OK, null);
+		if (friendPickerFragment != null && friendPickerFragment.getSelection().size() > 0) {
+			ArrayList<String> ids = new ArrayList<String>();
+			for(GraphUser u : friendPickerFragment.getSelection()) {
+				ids.add(u.getId());
+			}
+			Intent i = new Intent();
+			i.putExtra("selected", ids);
+			setResult(RESULT_OK, i);
+		} else {
+		    setResult(RESULT_OK, null);
+		}
 	    finish();
 	}
 

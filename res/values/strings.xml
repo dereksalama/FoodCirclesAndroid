@@ -12,6 +12,7 @@
     <string name="servlet_get_circle_chat">getchat</string>
     <string name="servlet_send_circle_message">sendmessage</string>
    	<string name="servlet_get_invites">getinvites</string>
+   	<string name="servlet_send_invites">sendinvite</string>
 
 
 

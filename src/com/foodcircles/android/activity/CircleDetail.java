@@ -1,9 +1,17 @@
 package com.foodcircles.android.activity;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.message.BasicNameValuePair;
+
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -17,6 +25,9 @@ import android.widget.Toast;
 
 import com.facebook.Session;
 import com.foodcircles.android.R;
+import com.foodcircles.android.dao.FacebookInfo;
+import com.foodcircles.android.dao.User;
+import com.foodcircles.android.util.HttpUtil;
 
 public class CircleDetail extends FragmentActivity implements
 		ActionBar.TabListener {
@@ -38,6 +49,8 @@ public class CircleDetail extends FragmentActivity implements
 
 	Long mCircleId;
 
+	private FacebookInfo mFacebookInfo;
+
 	private CircleMembersFragment mMembersFragment;
 	private CircleChatFragment mChatFragment;
 	private static final int REAUTH_ACTIVITY_CODE = 100;
@@ -47,6 +60,7 @@ public class CircleDetail extends FragmentActivity implements
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_circle_detail);
 
+		mFacebookInfo = FacebookInfo.get(this);
 		mCircleId = getIntent().getLongExtra("circle_id", 0);
 		mMembersFragment = new CircleMembersFragment();
 		Bundle args = new Bundle();
@@ -188,6 +202,17 @@ public class CircleDetail extends FragmentActivity implements
 
 	private void startPickerActivity() {
 	     Intent intent = new Intent();
+	     if (mMembersFragment.getCircleMembers() != null) {
+	    	 //TODO: check if this works
+	    	 Bundle args = new Bundle();
+	    	 StringBuilder csv = new StringBuilder();
+	    	 for (User u : mMembersFragment.getCircleMembers()) {
+	    		 csv.append(u.userID);
+	    		 csv.append(',');
+	    	 }
+	    	 args.putString("com.facebook.android.PickerFragment.Selection", csv.toString());
+	    	 intent.putExtra("users", args);
+	     }
 	     intent.setData(PickerActivity.FRIEND_PICKER);
 	     intent.setClass(this, PickerActivity.class);
 	     startActivityForResult(intent, PICK_FRIENDS);
@@ -199,9 +224,50 @@ public class CircleDetail extends FragmentActivity implements
 	    if (requestCode == REAUTH_ACTIVITY_CODE) {
 	    	Session.getActiveSession().onActivityResult(this, requestCode, resultCode, data);
 	    } else if (resultCode == Activity.RESULT_OK && requestCode == PICK_FRIENDS) {
-	    	Toast.makeText(this, "Invites sent!", Toast.LENGTH_SHORT).show();
-	    	//TODO: send invites
+    		ArrayList<String> selectedUserIds = data.getStringArrayListExtra("selected");
+	    	if (selectedUserIds != null && selectedUserIds.size() > 0) {
+	    		String[] userArray = new String[selectedUserIds.size()];
+	    		userArray = selectedUserIds.toArray(userArray);
+	    		new AsyncSendInvites().execute(userArray);
+	    	}
 	    }
+
+	}
+
+	private class AsyncSendInvites extends AsyncTask<String, Void, Boolean> {
+
+		@Override
+		protected Boolean doInBackground(String... params) {
+			String servlet = CircleDetail.this.getString(R.string.servlet_send_invites);
+			List<BasicNameValuePair> parameters = new ArrayList<BasicNameValuePair>();
+			parameters.add(new BasicNameValuePair("sender_id", mFacebookInfo.getID()));
+			parameters.add(new BasicNameValuePair("token", mFacebookInfo.getToken()));
+			parameters.add(new BasicNameValuePair("circle_id", Long.toString(mCircleId)));
+			for (int i = 0; i < params.length; i++) {
+				parameters.add(new BasicNameValuePair("receiver_id", params[i]));
+			}
+
+			try {
+				return HttpUtil.postNoResponse(servlet, parameters);
+			} catch (ClientProtocolException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return false;
+		}
+
+		@Override
+		protected void onPostExecute(Boolean result) {
+			if (result) {
+		    	Toast.makeText(CircleDetail.this, "Invites sent!", Toast.LENGTH_SHORT).show();
+			} else {
+				Toast.makeText(CircleDetail.this, "Failed to send invites", Toast.LENGTH_LONG).show();
+			}
+
+		}
 
 	}
 

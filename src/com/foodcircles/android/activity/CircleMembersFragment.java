@@ -39,6 +39,10 @@ public class CircleMembersFragment extends ListFragment {
 		new AsyncCircleMembers().execute(null, null, null);
 	}
 
+	public List<User> getCircleMembers() {
+		return (mCircle == null) ? null : mCircle.getUsers();
+	}
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
