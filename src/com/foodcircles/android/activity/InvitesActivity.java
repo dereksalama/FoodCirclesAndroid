@@ -52,9 +52,8 @@ public class InvitesActivity extends ListActivity {
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		CircleInvite i = mAdapter.getItem(position);
-		//TODO: post
-		mAdapter.remove(i);
-		Toast.makeText(this, "You joined: " + i.getCircleName(), Toast.LENGTH_SHORT).show();
+		mProgressBar.setVisibility(View.VISIBLE);
+		new AsyncAcceptInvite().execute(i);
 	}
 
 	private void refresh() {
@@ -132,6 +131,51 @@ public class InvitesActivity extends ListActivity {
 			}
 			mProgressBar.setVisibility(View.GONE);
 		}
+
+	}
+
+	//TODO: DENY INVITE
+	private class AsyncAcceptInvite extends AsyncTask<CircleInvite, Void, Boolean> {
+		CircleInvite i;
+		@Override
+		protected Boolean doInBackground(CircleInvite... params) {
+			if (params == null) {
+				return false;
+			}
+			i = params[0];
+			if (i == null) {
+				return false;
+			}
+
+			String servlet = InvitesActivity.this.getString(R.string.servlet_accept_invites);
+			List<BasicNameValuePair> parameters = new ArrayList<BasicNameValuePair>();
+			parameters.add(new BasicNameValuePair("token", mFacebookInfo.getToken()));
+			parameters.add(new BasicNameValuePair("accepted", Boolean.toString(true))); //DENY HERE
+			parameters.add(new BasicNameValuePair("key", Long.toString(params[0].getKeyID())));
+
+			try {
+				return HttpUtil.postNoResponse(servlet, parameters);
+			} catch (ClientProtocolException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return false;
+		}
+
+		@Override
+		protected void onPostExecute(Boolean result) {
+			if (result) {
+				mAdapter.remove(i);
+				Toast.makeText(InvitesActivity.this, "You joined: " + i.getCircleName(), Toast.LENGTH_SHORT).show();
+			} else {
+				Toast.makeText(InvitesActivity.this, "Unable to join: " + i.getCircleName(), Toast.LENGTH_SHORT).show();
+			}
+			mProgressBar.setVisibility(View.GONE);
+		}
+
 
 	}
 

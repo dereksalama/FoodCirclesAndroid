@@ -59,7 +59,7 @@ public class CircleChatFragment extends ListFragment {
 
 		View v = inflater.inflate(R.layout.fragment_circle_chat, group, false);
 
-		mProgressBar = (ProgressBar) v.findViewById(R.id.progressBar);
+		mProgressBar = (ProgressBar) v.findViewById(R.id.message_progressBar);
 		mAdapter = new ArrayAdapter<GroupChatMessage>(getActivity(), android.R.layout.simple_list_item_1);
 
 		mSendButton = (Button) v.findViewById(R.id.button_send);
@@ -71,12 +71,9 @@ public class CircleChatFragment extends ListFragment {
 		});
 		mTextField = (EditText) v.findViewById(R.id.edit_text_send_message);
 		setListAdapter(mAdapter);
-		if (mMessages != null) {
-			mAdapter.addAll(mMessages);
-			mProgressBar.setVisibility(View.GONE);
-		} else {
-			new AsyncCircleChat().execute(null, null, null);
-		}
+
+		new AsyncCircleChat().execute(null, null, null);
+
 
 		return v;
 	}
@@ -157,10 +154,11 @@ public class CircleChatFragment extends ListFragment {
 			if (result) {
 				Log.d("CircleChatFragment", "message sent successfully");
 				GroupChatMessage newMessage = new GroupChatMessage(mTextField.getText().toString(),
-						new Date(), Me.get(getActivity()), mCircleId);
+						new Date(), Me.get(), mCircleId);
 				mMessages.add(newMessage);
 				mAdapter.clear();
 				mAdapter.addAll(mMessages);
+				mProgressBar.setVisibility(View.GONE);
 			} else {
 				Toast.makeText(getActivity(), "Failed to send",Toast.LENGTH_SHORT).show();
 			}

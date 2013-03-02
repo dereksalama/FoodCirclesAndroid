@@ -23,14 +23,18 @@ import android.widget.Toast;
 
 import com.foodcircles.android.R;
 import com.foodcircles.android.dao.FacebookInfo;
+import com.foodcircles.android.dao.Me;
+import com.foodcircles.android.dao.User;
 import com.foodcircles.android.util.HttpUtil;
 import com.foodcircles.android.util.TokenUtil;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 
 public class LoginActivity extends Activity {
 
 	EditText mPassField;
 	FacebookInfo mFacebookInfo;
-	TextView mWelcomeText;
 	TextView mMessageText;
 	Button mLogin;
 	ProgressBar mProgress;
@@ -46,15 +50,13 @@ public class LoginActivity extends Activity {
 
 		mFacebookInfo = FacebookInfo.get(this);
 		String name = mFacebookInfo.getName();
-		mWelcomeText = (TextView) findViewById(R.id.name);
-		mWelcomeText.setText("Hello, " + name);
 		mMessageText = (TextView) findViewById(R.id.login_message);
 
 
 		if (newAccount) {
 			mMessageText.setText("Create a FC account:");
 		} else {
-			mMessageText.setText("Login:");
+			mMessageText.setText("Hello, " + name);
 		}
 
 		mPassField = (EditText) findViewById(R.id.password);
@@ -87,18 +89,28 @@ public class LoginActivity extends Activity {
 		getMenuInflater().inflate(R.menu.activity_login, menu);
 		return true;
 	}
-	private class AsyncLogin extends AsyncTask<Void,Void,Boolean> {
+	private class AsyncLogin extends AsyncTask<Void,Void,User> {
 
 		@Override
-		protected Boolean doInBackground(Void... user) {
+		protected User doInBackground(Void... user) {
 			List<BasicNameValuePair> parameters = new ArrayList<BasicNameValuePair>();
 			parameters.add(new BasicNameValuePair("user_id", mFacebookInfo.getID()));
 			parameters.add(new BasicNameValuePair("name", mFacebookInfo.getName()));
 			parameters.add(new BasicNameValuePair("token", mFacebookInfo.getToken()));
 
 			String servlet = LoginActivity.this.getString(R.string.servlet_create_user);
+
 			try {
-				return HttpUtil.postNoResponse(servlet, parameters);
+				String jString = HttpUtil.postForJson(servlet, parameters);
+				if (jString.length() <= 0) {
+					return null;
+				}
+				Gson gson = new Gson();
+				JsonParser jParser = new JsonParser();
+				JsonElement e = jParser.parse(jString);
+
+				User u = gson.fromJson(e, User.class);
+				return u;
 			} catch (ClientProtocolException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -106,13 +118,14 @@ public class LoginActivity extends Activity {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			return false;
+			return null;
 		}
 
 		@Override
-		protected void onPostExecute(Boolean result) {
-			if (result) {
+		protected void onPostExecute(User result) {
+			if (result != null) {
 				Log.d("LoginActivity", "FC login success");
+				Me.set(result);
 				openCircles();
 			} else {
 				Toast.makeText(LoginActivity.this, "Login Failed", Toast.LENGTH_LONG).show();
